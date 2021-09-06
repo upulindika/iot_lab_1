@@ -26,7 +26,7 @@ class Motor():
 
         direction = direction if not self._is_reversed else not direction  
         self.dir_pin.value(direction)
-            
+        # self.pwm_pin.__init__(self.pwm_pin.channel)
         self.pwm_pin.pulse_width_percent(power)
 
 #     def adder_thread(self):

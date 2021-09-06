@@ -10,6 +10,7 @@ class PWM(I2C):
     REG_ARR = 0x44
     ADDR = 0x14
     CLOCK = 72000000
+    # channel = 0
 
     def __init__(self, channel):
         super().__init__()
@@ -27,6 +28,7 @@ class PWM(I2C):
 
       #  self.debug = debug
       #  self._debug("PWM address: {:02X}".format(self.ADDR))
+      #   channel = int(channel[1:])
         self.channel = channel
         self.timer = int(channel/4)
         self.bus = smbus.SMBus(1)
