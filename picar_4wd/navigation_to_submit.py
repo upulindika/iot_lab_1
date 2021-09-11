@@ -13,7 +13,7 @@ class HouserBoon:
     args = {
         "labels": "/home/pi/picar-4wd/coco_labels.txt",
         "model": "/home/pi/picar-4wd/detect.tflite",
-        "threshold": .4
+        "threshold": .6
     }
 
     def load_labels(self, path):

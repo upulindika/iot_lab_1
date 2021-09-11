@@ -13,7 +13,7 @@ class HouserBoon:
     args = {
         "labels": "/home/pi/picar-4wd/coco_labels.txt",
         "model": "/home/pi/picar-4wd/detect.tflite",
-        "threshold": .4
+        "threshold": .6
     }
 
     def load_labels(self, path):
@@ -111,8 +111,8 @@ from pathfinding.finder.a_star import AStarFinder
 class LightningMcqueen:
     ser = Servo(PWM("P0"))
     us = Ultrasonic(Pin("D8"), Pin("D9"))
-    angle_increment = 5
-    length_per_position = 5.5  # 5 cm / position in numpy array
+    angle_increment = 2
+    length_per_position = 5  # 5 cm / position in numpy array
     houser_boon = HouserBoon()
     target = (150, 150)
     direction = 0
