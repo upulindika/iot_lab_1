@@ -10,6 +10,7 @@ CAMERA_WIDTH = 640
 CAMERA_HEIGHT = 480
 
 
+# This class detects what objects (namely stop signs and persons) are on the road
 class DetectObjects:
     ### from https://github.com/tensorflow/examples/blob/master/lite/examples/object_detection/raspberry_pi/detect_picamera.py
     args = {
@@ -71,7 +72,7 @@ class DetectObjects:
         return results
 
     def show_us_the_way(self):
-        with picamera.PiCamera(resolution=(CAMERA_WIDTH, CAMERA_HEIGHT), framerate=10) as camera:
+        with picamera.PiCamera(resolution=(CAMERA_WIDTH, CAMERA_HEIGHT), framerate=25) as camera:
             camera.start_preview()
             try:
                 stream = io.BytesIO()

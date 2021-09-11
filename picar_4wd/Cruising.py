@@ -15,10 +15,12 @@ from picar_4wd.speed import Speed
 from picar_4wd.ultrasonic import Ultrasonic
 
 
+# This class controls the car navigation (speed / steering) accordingly
 class Cruising:
+    # Initializing the servo
     ser = Servo(PWM("P0"))
     us = Ultrasonic(Pin("D8"), Pin("D9"))
-    angle_increment = 2
+    angle_increment = 5
     length_per_position = 5.5  # 5 cm / position in numpy array
     detectObjects = DetectObjects()
     target = (150, 150)
@@ -30,7 +32,7 @@ class Cruising:
         self.position = (self.map_to_fill.shape[0] * .5, 0)
         self.rescan_limit = 10
 
-    def findMove(self, current, prev):
+    def find_move(self, current, prev):
         if current[1] == prev[1] - 1:
             return "up"
         if current[1] == prev[1] + 1:
@@ -38,8 +40,9 @@ class Cruising:
         if current[0] == prev[0] + 1:
             return "forward"
 
-    def lets_do_this_thing(self, map_to_fill):
+    def lets_cruise(self, map_to_fill):
         map_to_fill = self.scan_and_build_map(60, map_to_fill)
+        print(map_to_fill)
         np.set_printoptions(threshold=np.inf)
 
         grid = Grid(matrix=map_to_fill)
@@ -56,42 +59,45 @@ class Cruising:
         # direction 0 = east
         # direction 1 = south
         # direction -1 = north
-
         for coordinate in path:
             print("Moving to this location", coordinate)
             print("Moving to this direction", direction)
-            move = self.findMove(coordinate, prev)
-            while (self.detectObjects.show_us_the_way() == "person"):
+            move = self.find_move(coordinate, prev)
+
+            # The car would stop moving if it detects a person to avoid a collision.
+            while self.detectObjects.show_us_the_way() == "person":
                 time.sleep(3)
                 print("STOP at a Person")
-            if (self.detectObjects.show_us_the_way() == "stop sign"):
+
+            # The car must come to a complete stop and wait 5 seconds before it continues past the sign.
+            if self.detectObjects.show_us_the_way() == "stop sign":
                 time.sleep(5)
                 print("STOP at a stop sign")
 
             if direction == 0 and move == "forward":
                 print("Forward direction == 0")
                 self.move25()
-                tempList = list(self.position)
-                tempList[0] += self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[0] += self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == 1 and move == "forward":
                 print("Forward direction == 1")
                 self.turnLeft()
                 self.move25()
                 direction = 0
-                tempList = list(self.position)
-                tempList[0] += self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[0] += self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == -1 and move == "forward":
                 print("Forward direction == -1")
                 self.turnRight()
                 self.move25()
                 direction = 0
-                tempList = list(self.position)
-                tempList[0] += self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[0] += self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == 0 and move == "down":
                 print("Down direction == 0")
@@ -99,16 +105,16 @@ class Cruising:
                 self.move25()
                 self.move25()
                 direction = 1
-                tempList = list(self.position)
-                tempList[1] -= self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[1] -= self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == 1 and move == "down":
                 print("Down direction == 1")
                 self.move25()
-                tempList = list(self.position)
-                tempList[1] -= self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[1] -= self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == -1 and move == "down":
                 print("Down direction == -1")
@@ -117,9 +123,9 @@ class Cruising:
                 self.move25()
                 self.move25()
                 direction = 1
-                tempList = list(self.position)
-                tempList[1] -= self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[1] -= self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == 0 and move == "up":
                 print("Up direction == 0")
@@ -127,9 +133,9 @@ class Cruising:
                 self.move25()
                 self.move25()
                 direction = -1
-                tempList = list(self.position)
-                tempList[1] += self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[1] += self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == 1 and move == "up":
                 print("Up direction == 1")
@@ -138,23 +144,23 @@ class Cruising:
                 self.move25()
                 self.move25()
                 direction = -1
-                tempList = list(self.position)
-                tempList[1] += self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[1] += self.length_per_position
+                self.position = tuple(temp_list)
 
             elif direction == -1 and move == "up":
                 print("Up direction == -1")
                 self.move25()
-                tempList = list(self.position)
-                tempList[1] += self.length_per_position
-                self.position = tuple(tempList)
+                temp_list = list(self.position)
+                temp_list[1] += self.length_per_position
+                self.position = tuple(temp_list)
 
             prev = coordinate
 
-        tempTarget = list(self.target)
-        tempTarget[0] -= self.position[0]
-        tempTarget[1] -= self.position[1]
-        self.target = tuple(tempTarget)
+        temp_target = list(self.target)
+        temp_target[0] -= self.position[0]
+        temp_target[1] -= self.position[1]
+        self.target = tuple(temp_target)
 
         self.direction = direction
 
@@ -177,7 +183,7 @@ class Cruising:
         speed4 = Speed(25)
         speed4.start()
         # time.sleep(2)
-        fc.turn_left(80)
+        fc.turn_left(60)
         x = 0
         for i in range(6):
             time.sleep(0.1)
@@ -192,7 +198,7 @@ class Cruising:
         speed4 = Speed(25)
         speed4.start()
         # time.sleep(2)
-        fc.turn_right(80)
+        fc.turn_right(60)
         x = 0
         for i in range(6):
             time.sleep(0.1)
@@ -217,13 +223,13 @@ class Cruising:
                 last_position = [(len(map_to_fill) * .5 - current_distance * math.sin(
                     math.radians(current_angle))) / self.length_per_position,
                                  current_distance * math.cos(math.radians(current_angle)) / self.length_per_position]
-                if (last_position[0] < len(map_to_fill) and last_position[1] <= len(map_to_fill)):
+                if last_position[0] < len(map_to_fill) and last_position[1] <= len(map_to_fill):
                     map_to_fill[int(last_position[0]), int(last_position[1])] = 0
             else:
                 current_position = [len(map_to_fill) * .5 - current_distance * math.sin(
                     math.radians(current_angle)) / self.length_per_position,
                                     current_distance * math.cos(math.radians(current_angle)) / self.length_per_position]
-                if (current_position[0] < len(map_to_fill) and current_position[1] <= len(map_to_fill)):
+                if current_position[0] < len(map_to_fill) and current_position[1] <= len(map_to_fill):
                     map_to_fill[int(current_position[0]), int(current_position[1])] = 0
                     slope = (current_position[1] - last_position[0]) / (current_position[0] - last_position[0])
                     for i in range(0, int(current_position[0] - last_position[0])):
@@ -234,10 +240,13 @@ class Cruising:
 
 
 def main():
-    car = Cruising(target=(50, 75))
-    while car.lets_do_this_thing(car.map_to_fill):
+    car = Cruising(target=(70, 80))
+    while car.lets_cruise(car.map_to_fill):
         print("Scanned")
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    finally:
+        fc.stop()
