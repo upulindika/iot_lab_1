@@ -62,6 +62,7 @@ class Cruising:
         for coordinate in path:
             print("Moving to this location", coordinate)
             print("Moving to this direction", direction)
+            # Find the next move of the car based on current and previous coordinates
             move = self.find_move(coordinate, prev)
 
             # The car would stop moving if it detects a person to avoid a collision.
@@ -77,27 +78,21 @@ class Cruising:
             if direction == 0 and move == "forward":
                 print("Forward direction == 0")
                 self.move25()
-                temp_list = list(self.position)
-                temp_list[0] += self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_forward()
 
             elif direction == 1 and move == "forward":
                 print("Forward direction == 1")
                 self.turnLeft()
                 self.move25()
                 direction = 0
-                temp_list = list(self.position)
-                temp_list[0] += self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_forward()
 
             elif direction == -1 and move == "forward":
                 print("Forward direction == -1")
                 self.turnRight()
                 self.move25()
                 direction = 0
-                temp_list = list(self.position)
-                temp_list[0] += self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_forward()
 
             elif direction == 0 and move == "down":
                 print("Down direction == 0")
@@ -105,27 +100,20 @@ class Cruising:
                 self.move25()
                 self.move25()
                 direction = 1
-                temp_list = list(self.position)
-                temp_list[1] -= self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_down_position()
 
             elif direction == 1 and move == "down":
                 print("Down direction == 1")
                 self.move25()
-                temp_list = list(self.position)
-                temp_list[1] -= self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_down_position()
 
             elif direction == -1 and move == "down":
                 print("Down direction == -1")
                 self.turnRight()
-                self.turnRight()
                 self.move25()
                 self.move25()
                 direction = 1
-                temp_list = list(self.position)
-                temp_list[1] -= self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_down_position()
 
             elif direction == 0 and move == "up":
                 print("Up direction == 0")
@@ -133,28 +121,21 @@ class Cruising:
                 self.move25()
                 self.move25()
                 direction = -1
-                temp_list = list(self.position)
-                temp_list[1] += self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_up_position()
 
             elif direction == 1 and move == "up":
                 print("Up direction == 1")
                 self.turnLeft()
-                self.turnLeft()
                 self.move25()
                 self.move25()
                 direction = -1
-                temp_list = list(self.position)
-                temp_list[1] += self.length_per_position
-                self.position = tuple(temp_list)
+                self.convert_list_to_tuple_for_up_position()
 
             elif direction == -1 and move == "up":
                 print("Up direction == -1")
                 self.move25()
-                temp_list = list(self.position)
-                temp_list[1] += self.length_per_position
-                self.position = tuple(temp_list)
-
+                self.convert_list_to_tuple_for_up_position()
+            #preserving the current coordinate
             prev = coordinate
 
         temp_target = list(self.target)
@@ -164,44 +145,42 @@ class Cruising:
 
         self.direction = direction
 
+    def convert_list_to_tuple_for_forward(self):
+        temp_list = list(self.position)
+        temp_list[0] += self.length_per_position
+        self.position = tuple(temp_list)
+
+    def convert_list_to_tuple_for_up_position(self):
+        temp_list = list(self.position)
+        temp_list[1] += self.length_per_position
+        self.position = tuple(temp_list)
+
+    def convert_list_to_tuple_for_down_position(self):
+        temp_list = list(self.position)
+        temp_list[1] -= self.length_per_position
+        self.position = tuple(temp_list)
+
     def move25(self):
         speed4 = Speed(25)
         speed4.start()
-        # time.sleep(2)
         fc.forward(100)
-        x = 0
-        for i in range(1):
-            # time.sleep(0.1)
-            speed = speed4()
-            x += speed * 0.1
-            print("%smm/s" % speed)
-        print("%smm" % x)
-        speed4.deinit()
-        fc.stop()
+        self.ctrl_speed(speed4)
 
     def turnLeft(self):
         speed4 = Speed(25)
         speed4.start()
-        # time.sleep(2)
         fc.turn_left(60)
-        x = 0
-        for i in range(6):
-            time.sleep(0.1)
-            speed = speed4()
-            x += speed * 0.1
-            print("%smm/s" % speed)
-        print("%smm" % x)
-        speed4.deinit()
-        fc.stop()
+        self.ctrl_speed(speed4)
 
     def turnRight(self):
         speed4 = Speed(25)
         speed4.start()
-        # time.sleep(2)
         fc.turn_right(60)
+        self.ctrl_speed(speed4)
+
+    def ctrl_speed(self, speed4):
         x = 0
         for i in range(6):
-            time.sleep(0.1)
             speed = speed4()
             x += speed * 0.1
             print("%smm/s" % speed)
