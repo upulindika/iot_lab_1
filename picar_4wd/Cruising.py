@@ -194,6 +194,7 @@ class Cruising:
         return self.us.get_distance()
 
     def scan_and_build_map(self, angle, map_to_fill):
+        # referred from https://github.com/mccaesar/iot-labs/blob/master/iot-lab-1/navigation.py
         last_position = [0, 0]
         for current_angle in range(-1 * angle, angle, self.angle_increment):
             current_distance = self.get_distance(current_angle)
