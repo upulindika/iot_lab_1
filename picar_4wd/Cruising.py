@@ -102,7 +102,7 @@ class Cruising:
         temp_target[1] -= self.position[1]
         self.target = tuple(temp_target)
 
-    # Move forward
+    # Move forward - referred from speed.py
     def move(self):
         speed4 = Speed(25)
         speed4.start()
@@ -118,7 +118,7 @@ class Cruising:
         speed4.deinit()
         fc.stop()
 
-    # Turn left
+    # Turn left- referred from speed.py
     def turnLeft(self):
         speed4 = Speed(25)
         speed4.start()
@@ -134,7 +134,7 @@ class Cruising:
         speed4.deinit()
         fc.stop()
 
-    # Turn right
+    # Turn right- referred from speed.py
     def turnRight(self):
         speed4 = Speed(25)
         speed4.start()
