@@ -19,19 +19,19 @@ from picar_4wd.ultrasonic import Ultrasonic
 class Cruising:
     # Initializing the servo
     ser = Servo(PWM("P0"))
+    # Initializing ultrasonic
     us = Ultrasonic(Pin("D8"), Pin("D9"))
     angle_increment = 5
-    length_per_position = 5.5  # 5 cm / position in numpy array
+    length_per_position = 5.5  # 11 cm / position in numpy array
     detectObjects = DetectObjects()
     target = (150, 150)
-    direction = 0
 
     def __init__(self, target):
         self.target = target
-        self.map_to_fill = np.ones((150, 150))
-        self.position = (self.map_to_fill.shape[0] * .5, 0)
-        self.rescan_limit = 10
+        self.generated_map = np.ones((150, 150))
+        self.position = (0, self.generated_map.shape[0] * .5)
 
+    #find the next possible move based on current and previous coordinate
     def find_move(self, current, prev):
         if current[1] == prev[1] - 1:
             return "up"
@@ -40,29 +40,24 @@ class Cruising:
         if current[0] == prev[0] + 1:
             return "forward"
 
-    def lets_cruise(self, map_to_fill):
-        map_to_fill = self.scan_and_build_map(60, map_to_fill)
-        print(map_to_fill)
-        np.set_printoptions(threshold=np.inf)
-
-        grid = Grid(matrix=map_to_fill)
-        start = grid.node(0, int(map_to_fill.shape[0] * .5))
+    def lets_cruise(self):
+        generated_map = self.scan_and_build_map(90)
+        print(generated_map)
+        grid = Grid(matrix=generated_map)
+        # start node is same coordinate that of self.position
+        start = grid.node(0, int(generated_map.shape[0] * .5))
         end = grid.node(self.target[0], self.target[1])
         finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
         path, runs = finder.find_path(start, end, grid)
         print('operations:', runs, 'path length:', len(path))
         print(grid.grid_str(path=path, start=start, end=end))
         print(path)
-        direction = self.direction
+
         prev = self.position
 
-        # direction 0 = east
-        # direction 1 = south
-        # direction -1 = north
+        # Iterate optimal path and navigate the course
         for coordinate in path:
             print("Moving to this location", coordinate)
-            print("Moving to this direction", direction)
-            # Find the next move of the car based on current and previous coordinates
             move = self.find_move(coordinate, prev)
 
             # The car would stop moving if it detects a person to avoid a collision.
@@ -74,68 +69,32 @@ class Cruising:
             if self.detectObjects.show_us_the_way() == "stop sign":
                 time.sleep(5)
                 print("STOP at a stop sign")
-
-            if direction == 0 and move == "forward":
-                print("Forward direction == 0")
-                self.move25()
-                self.convert_list_to_tuple_for_forward()
-
-            elif direction == 1 and move == "forward":
-                print("Forward direction == 1")
-                self.turnLeft()
-                self.move25()
-                direction = 0
-                self.convert_list_to_tuple_for_forward()
-
-            elif direction == -1 and move == "forward":
-                print("Forward direction == -1")
+            # The car does a forward movement based on current and previous coordinate
+            if move == "forward":
+                print("Forward direction ")
+                self.move()
+                temp_list = list(self.position)
+                temp_list[0] += self.length_per_position
+                self.position = tuple(temp_list)
+            # The car does a down movement based on current and previous coordinate
+            elif move == "down":
+                print("Down direction ")
                 self.turnRight()
-                self.move25()
-                direction = 0
-                self.convert_list_to_tuple_for_forward()
-
-            elif direction == 0 and move == "down":
-                print("Down direction == 0")
-                self.turnRight()
-                self.move25()
-                self.move25()
-                direction = 1
-                self.convert_list_to_tuple_for_down_position()
-
-            elif direction == 1 and move == "down":
-                print("Down direction == 1")
-                self.move25()
-                self.convert_list_to_tuple_for_down_position()
-
-            elif direction == -1 and move == "down":
-                print("Down direction == -1")
-                self.turnRight()
-                self.move25()
-                self.move25()
-                direction = 1
-                self.convert_list_to_tuple_for_down_position()
-
-            elif direction == 0 and move == "up":
-                print("Up direction == 0")
+                self.move()
                 self.turnLeft()
-                self.move25()
-                self.move25()
-                direction = -1
-                self.convert_list_to_tuple_for_up_position()
-
-            elif direction == 1 and move == "up":
-                print("Up direction == 1")
+                temp_list = list(self.position)
+                temp_list[1] -= self.length_per_position
+                self.position = tuple(temp_list)
+            # The car does a up movement based on current and previous coordinate
+            elif move == "up":
+                print("Up direction ")
                 self.turnLeft()
-                self.move25()
-                self.move25()
-                direction = -1
-                self.convert_list_to_tuple_for_up_position()
+                self.move()
+                self.turnRight()
+                temp_list = list(self.position)
+                temp_list[1] += self.length_per_position
+                self.position = tuple(temp_list)
 
-            elif direction == -1 and move == "up":
-                print("Up direction == -1")
-                self.move25()
-                self.convert_list_to_tuple_for_up_position()
-            #preserving the current coordinate
             prev = coordinate
 
         temp_target = list(self.target)
@@ -143,44 +102,15 @@ class Cruising:
         temp_target[1] -= self.position[1]
         self.target = tuple(temp_target)
 
-        self.direction = direction
-
-    def convert_list_to_tuple_for_forward(self):
-        temp_list = list(self.position)
-        temp_list[0] += self.length_per_position
-        self.position = tuple(temp_list)
-
-    def convert_list_to_tuple_for_up_position(self):
-        temp_list = list(self.position)
-        temp_list[1] += self.length_per_position
-        self.position = tuple(temp_list)
-
-    def convert_list_to_tuple_for_down_position(self):
-        temp_list = list(self.position)
-        temp_list[1] -= self.length_per_position
-        self.position = tuple(temp_list)
-
-    def move25(self):
+    # Move forward - referred from speed.py
+    def move(self):
         speed4 = Speed(25)
         speed4.start()
+        # time.sleep(2)
         fc.forward(100)
-        self.ctrl_speed(speed4)
-
-    def turnLeft(self):
-        speed4 = Speed(25)
-        speed4.start()
-        fc.turn_left(60)
-        self.ctrl_speed(speed4)
-
-    def turnRight(self):
-        speed4 = Speed(25)
-        speed4.start()
-        fc.turn_right(60)
-        self.ctrl_speed(speed4)
-
-    def ctrl_speed(self, speed4):
         x = 0
-        for i in range(6):
+        for i in range(1):
+            # time.sleep(0.1)
             speed = speed4()
             x += speed * 0.1
             print("%smm/s" % speed)
@@ -188,15 +118,50 @@ class Cruising:
         speed4.deinit()
         fc.stop()
 
+    # Turn left- referred from speed.py
+    def turnLeft(self):
+        speed4 = Speed(25)
+        speed4.start()
+        # time.sleep(2)
+        fc.turn_left(60)
+        x = 0
+        for i in range(6):
+            time.sleep(0.1)
+            speed = speed4()
+            x += speed * 0.1
+            print("%smm/s" % speed)
+        print("%smm" % x)
+        speed4.deinit()
+        fc.stop()
+
+    # Turn right- referred from speed.py
+    def turnRight(self):
+        speed4 = Speed(25)
+        speed4.start()
+        # time.sleep(2)
+        fc.turn_right(60)
+        x = 0
+        for i in range(6):
+            time.sleep(0.1)
+            speed = speed4()
+            x += speed * 0.1
+            print("%smm/s" % speed)
+        print("%smm" % x)
+        speed4.deinit()
+        fc.stop()
+
+    # could have used fc.get_distance_a() but need to delay the servo for better accuracy
     def get_distance(self, angle):
         self.ser.set_angle(angle)
         time.sleep(0.5)
         return self.us.get_distance()
 
-    def scan_and_build_map(self, angle, map_to_fill):
-        # referred from https://github.com/mccaesar/iot-labs/blob/master/iot-lab-1/navigation.py
+    # referred from https://github.com/mccaesar/iot-labs/blob/2e36e9d8fd50ece2d999aad7231dd24ddc46d98a/iot-lab-1/navigation.py
+    def scan_and_build_map(self, angle):
+        map_to_fill = self.generated_map
         last_position = [0, 0]
         for current_angle in range(-1 * angle, angle, self.angle_increment):
+            # could have used fc.get_distance_a() but need to deplay the servo for better accuracy
             current_distance = self.get_distance(current_angle)
             print(current_distance)
             if current_angle == -1 * angle:
@@ -218,11 +183,9 @@ class Cruising:
                             map_to_fill[int(last_position[0] + i), int(last_position[1] + i * slope)] = 0
         return map_to_fill
 
-
 def main():
-    car = Cruising(target=(70, 80))
-    while car.lets_cruise(car.map_to_fill):
-        print("Scanned")
+    car = Cruising(target=(70, 70))
+    car.lets_cruise()
 
 
 if __name__ == '__main__':
